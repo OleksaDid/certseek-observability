@@ -1,0 +1,23 @@
+name: certseek-uptime
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch: {}
+permissions: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Home page answers with a CertSeek release header
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://certseek.app/)
+          release=$(curl -sI --max-time 20 https://certseek.app/ | tr -d '\r' | awk -F': ' 'tolower($1)=="x-certseek-release"{print $2}')
+          echo "status=$code release=$release"
+          test "$code" = "200" && test -n "$release"
+      - name: Live data file is fresh (under 48 h)
+        run: |
+          at=$(curl -s --max-time 20 https://certseek.app/explorer/live/school-status.json | python3 -c 'import sys,json;print(json.load(sys.stdin)["refreshAt"])')
+          age=$(( $(date -u +%s) - $(date -u -d "$at" +%s) ))
+          echo "refreshAt=$at age=${age}s"
+          test "$age" -lt 172800
