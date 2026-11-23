@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Controlled failure test (R05, 23.11.2026) - remove after the owner confirms the email
-        run: echo 'Intentional failure to test the failure email' && exit 1
       - name: Home page answers with a CertSeek release header
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://certseek.app/)
